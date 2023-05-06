@@ -154,12 +154,30 @@ int vm_page_insert(pde_t* pgdir, uintptr_t va, physaddr_t pa, int perm) {
 void
 vm_page_remove(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 {
-  // This function should use walk_pgtable to find the corresponding
-  // entry for the virtual address va. If the pte is not found, or if
-  // the page is not present, then this function should panic. If
-  // do_free is set to 1, this function should deallocate the
-  // corresponding physical page frame.
-  // YOUR CODE HERE
+  // Verify that the virtual address is page-aligned
+  assert(PAGE_ALIGNED(va));
+
+  // Iterate through all pages to be removed
+  for (size_t i = 0; i < npages; i++) {
+    // Find the corresponding page table entry
+    pte_t* pte = walk_pgdir(pgdir, va, 0);
+    if (pte == NULL || !(*pte & PTE_P)) {
+      // If the PTE is not found or the page is not present, panic
+      panic("vm_page_remove: page not present\n");
+    }
+
+    // Clear the page table entry to remove the mapping
+    *pte = 0;
+
+    // Optionally free the physical page
+    if (do_free) {
+      physaddr_t pa = PTE_ADDR(*pte);
+      page_free(pa);
+    }
+
+    // Advance to the next page
+    va += PAGE_SIZE;
+  }
 }
 
 
