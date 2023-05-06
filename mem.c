@@ -94,20 +94,21 @@ void vm_page_free(void* v) {
 }
 
 
-// create an empty page table.
-// returns 0 if out of memory.
-pagetable_t
-vm_create_pagetable()
-{
-  // This function should do the following:
-  //   1.) Allocate a page frame to store the table.
-  //   2.) Set the contents of the entire page to zero, thus 
-  //      marking every PTE as invalid.
-  // If a page cannot be allocated, this function should return 0.
-  // YOUR CODE HERE
+pde_t *vm_create_pagetable(void) {
+    // Allocate a page frame to store the page directory
+    uint32_t page_frame_index = vm_page_alloc();
+    if (page_frame_index == 0) {
+        return 0; // Out of memory
+    }
 
-  return 0;
+    // Clear the contents of the page frame (i.e., set all PTEs to invalid)
+    pde_t *page_dir = (pde_t *) vm_index_to_vaddr(page_frame_index);
+    memset(page_dir, 0, PAGE_SIZE);
+
+    // Return a pointer to the new page directory
+    return page_dir;
 }
+
 
 
 // Look up a virtual address, return the physical address,
