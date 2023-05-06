@@ -78,17 +78,19 @@ struct frame* vm_page_alloc(void) {
 
 
 
-// Free the page of physical memory pointed at by v,
-// which normally should have been returned by a
-// call to vm_page_alloc().  (The exception is when
-// initializing the allocator; see kinit above.)
-void
-vm_page_free(void *pa)
-{
-  // This function should link this physical page back into the frame
-  // table. The deallocated page should be come the first free frame
-  // in the table.
-  // YOUR CODE HERE
+void vm_page_free(void* v) {
+  uint32_t index;
+ // Calculate the index of the physical page to free
+  index = ((uintptr_t)v - mem_start) / PAGE_SIZE;
+  // Sanity check: make sure the index is valid
+  if (index >= mem_size / PAGE_SIZE) {
+    panic("vm_page_free: invalid index");
+  }
+  // Mark the page as free in the page table
+  page_table[index] = PAGE_FREE;
+  // Link the page back into the frame table as the first free frame
+  frame_table[index].next = first_free_frame;
+  first_free_frame = index;
 }
 
 
