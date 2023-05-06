@@ -94,7 +94,8 @@ void vm_page_free(void* v) {
 }
 
 
-pde_t *vm_create_pagetable(void) {
+pagetable_t
+*vm_create_pagetable(void) {
     // Allocate a page frame to store the page directory
     uint32_t page_frame_index = vm_page_alloc();
     if (page_frame_index == 0) {
@@ -115,16 +116,14 @@ pde_t *vm_create_pagetable(void) {
 // or 0 if not mapped.
 uint64
 vm_lookup(pagetable_t pagetable, uint64 va)
-{
-  // This function should use walk_pgtable to look up a page table
-  // entry for the given virtual address. If the entry is invalid,
-  // return 0. If the entry is valid, convert it to a physical 
-  // address and return the physical address.
-  // HINT: This function is subtely different than the corresponding
-  //       function in XV6. Take care when copying!
-  // YOUR CODE HERE
-
+// Look up the PTE for the virtual address
+pte_t* pte = walk_pgtable(pgdir, vaddr, /*create*/ false);
+// If the PTE is invalid, return 0
+if (pte == 0 || (*pte & PTE_PRESENT) == 0) {
   return 0;
+}
+// Convert the PTE to a physical address and return it
+return ((*pte & PTE_FRAME) | (vaddr & PAGE_OFFSET));
 }
 
 
